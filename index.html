@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sistema de Registro Contable · Bs / USD</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%23142b4a%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-size=%2718%27 text-anchor=%27middle%27 fill=%27%23d6a83d%27 font-family=%27Arial%27%3EBs%3C/text%3E%3C/svg%3E">
+<style>
+:root{--navy:#1F3A5F;--azul:#2E75B6;--gold:#C9A227;--bg:#F4F6FA;--txt:#262626;--mut:#6b7280;--ok:#2E7D32;--okbg:#E6F4EA;--bad:#C62828;--badbg:#FDE2E2;--warn:#8A6100;--warnbg:#FFF4D6;--line:#E3E8F0;--pale:#EAF2FB}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--txt);font-size:14px}
+header{background:var(--navy);color:#fff;padding:12px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+header h1{font-size:17px;margin:0}
+header .emp{font-size:12.5px;opacity:.9}
+header .who{font-size:12.5px;text-align:right}
+header button{background:#fff;color:var(--navy);border:0;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;margin-left:8px}
+nav{background:#fff;border-bottom:1px solid var(--line);display:flex;overflow-x:auto;position:sticky;top:0;z-index:5}
+nav button{border:0;background:none;padding:12px 14px;cursor:pointer;color:var(--mut);font-size:13px;border-bottom:3px solid transparent;white-space:nowrap}
+nav button.on{color:var(--navy);border-bottom-color:var(--azul);font-weight:bold}
+main{padding:18px 22px;max-width:1300px;margin:0 auto}
+.sec{display:none}.sec.on{display:block}
+h2{color:var(--navy);font-size:17px;margin:4px 0 12px}
+h3{color:var(--navy);font-size:14px;margin:20px 0 8px;border-bottom:2px solid var(--navy);padding-bottom:4px}
+.box{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end}
+label{font-size:11px;color:var(--mut);font-weight:bold;display:flex;flex-direction:column;gap:4px}
+input,select{padding:7px 8px;border:1px solid #c9d3e0;border-radius:6px;font-size:13px;background:var(--pale);color:#0b3d91;font-family:inherit;min-width:0}
+input:focus,select:focus{outline:2px solid var(--azul)}
+button.btn{background:var(--azul);color:#fff;border:0;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px}
+button.btn:hover{background:var(--navy)}
+button.alt{background:#fff;color:var(--navy);border:1px solid var(--navy)}
+button.peligro{background:#fff;color:var(--bad);border:1px solid var(--bad)}
+button.del{background:none;border:0;color:var(--bad);cursor:pointer;font-size:12px;text-decoration:underline}
+button.lnk{background:none;border:0;color:var(--azul);cursor:pointer;font-size:12px;text-decoration:underline;padding:0 4px}
+.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:#fff;max-height:70vh}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{background:var(--navy);color:#fff;padding:7px 6px;text-align:center;font-size:11.5px;position:sticky;top:0;z-index:1}
+td{padding:6px;border-bottom:1px solid var(--line);white-space:nowrap}
+td.n,th.n{text-align:right}
+tr.tot td{font-weight:bold;background:#f2f4f8}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:12px}
+.kpi{background:#fff;border:1px solid var(--line);border-top:4px solid var(--azul);border-radius:8px;padding:12px}
+.kpi .l{font-size:10.5px;color:var(--mut);font-weight:bold;letter-spacing:.3px;text-transform:uppercase}
+.kpi .v{font-size:21px;color:var(--navy);font-weight:bold;margin:6px 0 2px}
+.kpi .s{font-size:11px;color:var(--mut)}
+.badge{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;white-space:nowrap}
+.b-ok{background:var(--okbg);color:var(--ok)}.b-bad{background:var(--badbg);color:var(--bad)}.b-warn{background:var(--warnbg);color:var(--warn)}.b-gr{background:#EDEDED;color:#595959}
+.neg{color:var(--bad)}
+.msg{padding:8px 10px;border-radius:6px;margin:10px 0;font-size:12.5px;display:none}
+.msg.e{display:block;background:var(--badbg);color:var(--bad)}
+.msg.o{display:block;background:var(--okbg);color:var(--ok)}
+.chart{display:flex;align-items:flex-end;gap:8px;height:200px;padding:10px 6px 0;border-bottom:1px solid #9aa5b5}
+.chart .g{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
+.chart .p{display:flex;align-items:flex-end;gap:3px;height:100%}
+.chart .bar{width:14px;border-radius:3px 3px 0 0}
+.chart .lb{font-size:10px;color:var(--mut);margin-top:4px}
+.leg{font-size:11px;color:var(--mut);margin:6px 0}
+.leg i{display:inline-block;width:10px;height:10px;margin:0 4px 0 12px;border-radius:2px;vertical-align:middle}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:820px){.two{grid-template-columns:1fr}}
+.hint{font-size:11.5px;color:var(--mut);margin:6px 0 0}
+.toolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:12px}
+.aviso{background:var(--warnbg);color:var(--warn);padding:10px 12px;border-radius:8px;margin-bottom:12px;font-size:12.5px}
+body.rol-usuario .solo-admin{display:none!important}
+#overlay{position:fixed;inset:0;background:rgba(31,58,95,.92);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+#overlay.on{display:flex}
+.login{background:#fff;border-radius:12px;padding:24px;width:100%;max-width:380px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.login h2{margin:0 0 4px;font-size:18px}
+.login p{color:var(--mut);font-size:12.5px;margin:0 0 14px}
+.login form{display:flex;flex-direction:column;gap:10px}
+.login form label{font-size:12px}
+.login .btn{width:100%;padding:10px}
+@media print{
+  header,nav,.noprint,button,form,.hint,.toolbar,#overlay{display:none!important}
+  body{background:#fff}
+  main{padding:0;max-width:none}
+  .sec{display:none}.sec.on{display:block}
+  .box{border:0;padding:0}
+  .wrap{max-height:none;overflow:visible;border:0}
+  th{position:static}
+}
+
+/* ===== CAPA VISUAL PRO: diseño adaptable, microinteracciones y motion ===== */
+:root{
+  --navy:#142b4a; --azul:#2868c7; --gold:#d6a83d; --bg:#f3f6fc;
+  --txt:#1d2939; --mut:#66758b; --line:#e4eaf3; --pale:#f4f7fc;
+  --shadow:0 12px 34px rgba(20,43,74,.075);
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  background:
+    radial-gradient(ellipse at 90% 0%,rgba(40,104,199,.08),transparent 32rem),
+    var(--bg);
+  color:var(--txt); line-height:1.45;
+}
+header{
+  position:relative; overflow:hidden; padding:18px clamp(16px,3vw,34px);
+  background:linear-gradient(115deg,#102744 0%,#183d69 58%,#2868c7 120%);
+  box-shadow:0 8px 24px rgba(16,39,68,.18);
+}
+header:after{
+  content:""; position:absolute; width:290px;height:290px;border-radius:50%;
+  right:8%;top:-210px;border:1px solid rgba(255,255,255,.15);
+  box-shadow:0 0 0 30px rgba(255,255,255,.035),0 0 0 65px rgba(255,255,255,.025);
+  pointer-events:none;
+}
+header h1{font-size:clamp(17px,2vw,22px);font-weight:750;letter-spacing:-.45px}
+header .emp{margin-top:4px;color:#d7e5f8}
+header .who{z-index:1;line-height:1.8}
+header button{border-radius:9px;padding:8px 14px;font-weight:700;transition:.2s}
+header button:hover{transform:translateY(-2px);box-shadow:0 5px 14px #071a333d}
+nav{
+  padding:0 12px;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);
+  box-shadow:0 4px 14px rgba(20,43,74,.045);border-bottom:1px solid var(--line);
+}
+nav button{padding:15px 16px;font-weight:600;transition:color .2s,border-color .2s,background .2s}
+nav button:hover{color:var(--azul);background:#f5f8fe}
+nav button.on{color:var(--azul);border-bottom-color:var(--azul)}
+main{max-width:1440px;padding:clamp(16px,2.4vw,30px)}
+h2{font-size:clamp(18px,2vw,23px);font-weight:750;letter-spacing:-.45px;margin:4px 0 18px}
+h3{font-size:14px;font-weight:750;border-bottom:1px solid var(--line);padding-bottom:9px}
+.box,.kpi{
+  border:1px solid rgba(220,228,240,.95);border-radius:15px;
+  box-shadow:var(--shadow);transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;
+}
+.box{padding:clamp(14px,2vw,21px);margin-bottom:17px}
+.box:hover{border-color:#d2def0;box-shadow:0 15px 38px rgba(20,43,74,.09)}
+.kpis{gap:14px}
+.kpi{position:relative;overflow:hidden;padding:17px;border-top:0}
+.kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(#2868c7,#69a0ef)}
+.kpi:hover{transform:translateY(-4px)}
+.kpi .l{letter-spacing:.55px;font-size:10px}
+.kpi .v{font-size:clamp(20px,2vw,26px);letter-spacing:-.6px}
+.grid{gap:14px}
+label{font-size:11px;letter-spacing:.15px;color:#596a82}
+input,select{
+  min-height:39px;padding:9px 11px;border:1px solid #d5deeb;border-radius:9px;
+  background:#f8faff;color:#203c63;transition:border .18s,box-shadow .18s,background .18s;
+}
+input:focus,select:focus{outline:0;border-color:#5590e5;box-shadow:0 0 0 3px rgba(40,104,199,.13);background:#fff}
+button.btn{
+  min-height:38px;padding:9px 16px;border-radius:9px;font-weight:700;
+  background:linear-gradient(135deg,#2868c7,#1d4f9b);
+  box-shadow:0 4px 10px rgba(40,104,199,.16);
+  transition:transform .18s,box-shadow .18s,filter .18s;
+}
+button.btn:hover{background:linear-gradient(135deg,#1f5db7,#173f7e);transform:translateY(-2px);box-shadow:0 7px 16px rgba(40,104,199,.22)}
+button.btn:active{transform:translateY(0) scale(.98)}
+button.alt{background:#fff;color:var(--navy);box-shadow:none}
+button.peligro{color:var(--bad);background:#fff}
+.toolbar{padding:12px 14px;background:rgba(255,255,255,.72);border:1px solid var(--line);border-radius:13px}
+.wrap{border-radius:12px;box-shadow:0 3px 12px rgba(20,43,74,.035)}
+table{font-size:12px}
+th{padding:11px 9px;background:#1b3d68;font-size:10.5px;letter-spacing:.25px}
+td{padding:9px 8px}
+tbody tr{transition:background .15s}
+tr:hover td{background:#f5f8fd}
+tr.tot td{background:#edf3fb}
+.badge{padding:4px 9px;border-radius:20px}
+.msg{padding:10px 13px;border-radius:9px}
+.aviso{border:1px solid #f0d998;border-radius:10px}
+#overlay{
+  background:linear-gradient(135deg,rgba(11,28,51,.96),rgba(24,61,105,.94));
+  backdrop-filter:blur(9px);
+}
+.login{
+  position:relative;border:1px solid rgba(255,255,255,.65);border-radius:20px;
+  padding:30px;max-width:410px;box-shadow:0 28px 80px rgba(0,0,0,.3);
+  animation:loginIn .55s cubic-bezier(.2,.8,.2,1) both;
+}
+.login:before{
+  content:"";display:block;width:46px;height:5px;border-radius:9px;
+  background:linear-gradient(90deg,var(--azul),var(--gold));margin-bottom:20px;
+}
+.login h2{font-size:23px;margin-bottom:7px}
+.login p{line-height:1.6}
+.login form{gap:13px}
+.login form label{font-size:12px}
+.login .btn{margin-top:5px;min-height:44px}
+.sec.on{animation:sectionIn .34s ease both}
+@keyframes loginIn{from{opacity:0;transform:translateY(22px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes sectionIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:700px){
+  header{align-items:flex-start}
+  header .who{text-align:left}
+  nav{padding:0 5px}
+  nav button{padding:13px 12px;font-size:12px}
+  main{padding:14px 12px}
+  .toolbar{align-items:stretch}
+  .toolbar label{flex:1 1 140px}
+  .login{padding:24px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+
+</style>
+</head>
+<body>
+<div id="overlay">
+  <div class="login" id="cajaLogin">
+    <h2>Bienvenido</h2>
+    <p>Accede al Sistema de Registro Contable · Bs / USD</p>
+    <form onsubmit="entrar(event)">
+      <label>Usuario<input id="lUsuario" autocomplete="username" required></label>
+      <label>Contraseña<input id="lClave" type="password" autocomplete="current-password" required></label>
+      <button class="btn" type="submit">Ingresar</button>
+      <div id="mLogin" class="msg"></div>
+    </form>
+  </div>
+  <div class="login" id="cajaSetup" style="display:none">
+    <h2>Configuración inicial</h2>
+    <p>Cree el usuario <b>Administrador</b>. Tendrá acceso completo y podrá crear los demás usuarios.</p>
+    <form onsubmit="crearAdmin(event)">
+      <label>Nombre completo<input id="sNombre" value="Administrador" required></label>
+      <label>Usuario (letras, números, punto o guion)<input id="sUsuario" value="Admin" required></label>
+      <label>Contraseña (mínimo 8 caracteres)<input id="sClave" type="password" minlength="8" autocomplete="new-password" required></label>
+      <label>Repita la contraseña<input id="sClave2" type="password" minlength="8" autocomplete="new-password" required></label>
+      <button class="btn" type="submit">Crear administrador y entrar</button>
+      <div id="mSetup" class="msg"></div>
+    </form>
+  </div>
+</div>
+
+<header>
+  <div><h1>Sistema de Registro Contable · Bs / USD</h1><div class="emp" id="hdrEmp"></div></div>
+  <div class="who">
+    <div>Fecha de trabajo: <b id="hdrFecha"></b> · Tasa BCV: <b id="hdrTasa"></b></div>
+    <div><span id="hdrUsuario"></span><button onclick="salir()">Salir</button></div>
+  </div>
+</header>
+<nav id="nav">
+  <button data-s="inicio" class="on">Inicio</button>
+  <button data-s="param">Parámetros y tasas</button>
+  <button data-s="prod">Productos</button>
+  <button data-s="mov">Inventario (movimientos)</button>
+  <button data-s="kardex">Kárdex PEPS / Promedio</button>
+  <button data-s="pres">Presupuesto de ventas</button>
+  <button data-s="reg">Ingresos y egresos</button>
+  <button data-s="cierre">Cierre diario</button>
+  <button data-s="cuenta">Mi cuenta</button>
+  <button data-s="usuarios" class="solo-admin">Usuarios</button>
+  <button data-s="auditoria" class="solo-admin">Auditoría</button>
+  <button data-s="resp" class="solo-admin">Respaldo</button>
+</nav>
+<main>
+  <div class="toolbar noprint">
+    <label>Fecha de trabajo<input type="date" id="fechaTrab" onchange="setFecha(this.value)"></label>
+    <label>Año del resumen<input type="number" id="anio" min="2000" max="2100" onchange="setAnio(this.value)"></label>
+    <button class="btn alt" onclick="window.print()">Imprimir / guardar PDF</button>
+  </div>
+
+  <section class="sec on" id="s-inicio">
+    <h2 id="tInicio"></h2>
+    <div class="kpis" id="kpis"></div>
+    <div class="two">
+      <div class="box">
+        <h3 style="margin-top:0">Ingresos y egresos por mes</h3>
+        <div class="chart" id="chartMes"></div>
+        <div class="leg"><i style="background:#2E75B6"></i>Ingresos Bs <i style="background:#C9A227"></i>Egresos Bs</div>
+      </div>
+      <div class="box">
+        <h3 style="margin-top:0">Resumen mensual</h3>
+        <div class="wrap" style="max-height:330px"><table id="tMes"></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="s-param">
+    <h2>Parámetros, tasas BCV y catálogo de cuentas</h2>
+    <div class="box solo-admin">
+      <div class="grid">
+        <label>Empresa<input id="pEmp" placeholder="Nombre de la empresa"></label>
+        <label>RIF<input id="pRif" placeholder="J-00000000-0"></label>
+        <button class="btn" onclick="saveEmp()">Guardar datos</button>
+      </div>
+      <div id="mEmp" class="msg"></div>
+    </div>
+    <div class="box">
+      <h3 style="margin-top:0">Tasa de cambio BCV (Bs por 1 USD)</h3>
+      <div class="grid">
+        <label>Fecha valor<input type="date" id="tFecha"></label>
+        <label>Tasa BCV (Bs/USD)<input type="number" step="0.0001" id="tTasa" placeholder="0,0000"></label>
+        <button class="btn" onclick="addTasa()">Registrar tasa</button>
+      </div>
+      <p class="hint">Copie la tasa oficial desde <b>www.bcv.org.ve</b>. Cualquier usuario puede registrar la tasa del día; solo el administrador puede eliminarla.</p>
+      <div id="mTasa" class="msg"></div>
+      <div class="wrap" style="margin-top:8px;max-height:260px"><table id="tTasas"></table></div>
+    </div>
+    <div class="box">
+      <h3 style="margin-top:0">Catálogo de cuentas (NIC 1 / NIIF-VEN)</h3>
+      <div class="solo-admin">
+        <div class="grid">
+          <label>Código<input type="number" id="cCod" placeholder="Ej. 4103"></label>
+          <label>Nombre<input id="cNom" placeholder="Nombre de la cuenta"></label>
+          <label>Clasificación<select id="cCla"><option>Activo corriente</option><option>Pasivo corriente</option><option>Patrimonio</option><option>Ingreso</option><option>Costo</option><option>Gasto operativo</option></select></label>
+          <button class="btn" onclick="addCuenta()">Agregar cuenta</button>
+        </div>
+        <div id="mCuenta" class="msg"></div>
+      </div>
+      <div class="wrap" style="margin-top:8px;max-height:300px"><table id="tCuentas"></table></div>
+    </div>
+  </section>
+
+  <section class="sec" id="s-prod">
+    <h2>Productos</h2>
+    <div class="box solo-admin">
+      <div class="grid">
+        <label>Código<input id="prCod" placeholder="P-001"></label>
+        <label>Descripción<input id="prDes"></label>
+        <label>Unidad<input id="prUni" value="Unidad"></label>
+        <label>Categoría<input id="prCat" value="General"></label>
+        <label>Método de valuación<select id="prMet"><option value="PEPS">PEPS (FIFO)</option><option value="Promedio">Promedio ponderado</option></select></label>
+        <label>Stock mínimo (unid.)<input type="number" step="any" id="prMin" value="0"></label>
+        <label>Precio de venta referencial Bs (VNR)<input type="number" step="any" id="prVnr" value="0"></label>
+        <button class="btn" onclick="addProd()">Agregar producto</button>
+      </div>
+      <div id="mProd" class="msg"></div>
+    </div>
+    <div class="wrap" id="tProd"></div>
+  </section>
+
+  <section class="sec" id="s-mov">
+    <h2>Inventario: entradas y salidas</h2>
+    <div class="box">
+      <div class="grid">
+        <label>Fecha<input type="date" id="mFecha"></label>
+        <label>Producto<select id="mProd_"></select></label>
+        <label>Tipo<select id="mTipo"><option>Entrada</option><option>Salida</option></select></label>
+        <label>Cantidad (unid.)<input type="number" step="any" id="mCant"></label>
+        <label>Moneda del costo<select id="mMon"><option>Bs</option><option>USD</option></select></label>
+        <label>Costo unitario (entrada)<input type="number" step="any" id="mCosto"></label>
+        <label>Tasa manual (opcional)<input type="number" step="0.0001" id="mTasaM"></label>
+        <label>Precio de venta Bs (salida)<input type="number" step="any" id="mPrecio"></label>
+        <button class="btn" onclick="addMov()">Registrar movimiento</button>
+      </div>
+      <p class="hint">Entradas: compras o devoluciones con costo unitario. Salidas: ventas o consumos. Cada usuario puede eliminar solo los movimientos que registró.</p>
+      <div id="mMov" class="msg"></div>
+    </div>
+    <div class="wrap" id="tMov"></div>
+  </section>
+
+  <section class="sec" id="s-kardex">
+    <h2>Kárdex: PEPS y promedio ponderado (NIC 2, en Bs)</h2>
+    <div class="toolbar noprint"><label>Producto<select id="kProd" onchange="renderKardex()"></select></label></div>
+    <div class="wrap" id="tKardex"></div>
+    <h3>Inventario valorado por producto</h3>
+    <div class="wrap" id="tInv"></div>
+  </section>
+
+  <section class="sec" id="s-pres">
+    <h2>Presupuesto de ventas diario por producto</h2>
+    <div class="box">
+      <div class="grid">
+        <label>Fecha<input type="date" id="pvFecha"></label>
+        <label>Producto<select id="pvProd"></select></label>
+        <label>Unidades presupuestadas<input type="number" step="any" id="pvUni"></label>
+        <label>Precio presupuestado Bs (opcional)<input type="number" step="any" id="pvPre"></label>
+        <button class="btn" onclick="addPres()">Registrar presupuesto</button>
+      </div>
+      <p class="hint">Si no indica precio, se usa el precio referencial del producto.</p>
+      <div id="mPres" class="msg"></div>
+    </div>
+    <div class="wrap" id="tPres"></div>
+  </section>
+
+  <section class="sec" id="s-reg">
+    <h2>Registro de ingresos y egresos de caja y bancos</h2>
+    <div class="box">
+      <div class="grid">
+        <label>Fecha<input type="date" id="rFecha"></label>
+        <label>Tipo<select id="rTipo"><option>Ingreso</option><option>Egreso</option></select></label>
+        <label>Cuenta<select id="rCuenta"></select></label>
+        <label>Descripción<input id="rDes"></label>
+        <label>Tercero (cliente / proveedor)<input id="rTer"></label>
+        <label>N° documento<input id="rDoc"></label>
+        <label>Moneda<select id="rMon"><option>Bs</option><option>USD</option></select></label>
+        <label>Monto<input type="number" step="any" id="rMonto"></label>
+        <label>Tasa manual (opcional)<input type="number" step="0.0001" id="rTasaM"></label>
+        <button class="btn" onclick="addReg()">Registrar</button>
+      </div>
+      <p class="hint">Use 4102 (servicios) y 4201 (otros ingresos). Las ventas de productos se registran en Inventario.</p>
+      <div id="mReg" class="msg"></div>
+    </div>
+    <div class="wrap" id="tReg"></div>
+  </section>
+
+  <section class="sec" id="s-cierre">
+    <h2 id="tCierre"></h2>
+    <div class="two">
+      <div class="box"><h3 style="margin-top:0">1. Ventas del día</h3><table id="cVentas"></table></div>
+      <div class="box"><h3 style="margin-top:0">2. Costos e inventario del día</h3><table id="cCostos"></table></div>
+    </div>
+    <div class="box"><h3 style="margin-top:0">3. Caja y bancos del día</h3><table id="cCaja"></table></div>
+    <h3>4. Desglose por producto</h3>
+    <div class="wrap" id="cProd"></div>
+    <p class="hint">Cifras referenciales. No incluyen reexpresión por inflación (NIC 29) ni diferencias de cambio al cierre (NIC 21).</p>
+  </section>
+
+  <section class="sec" id="s-cuenta">
+    <h2>Mi cuenta</h2>
+    <div class="box">
+      <p id="miDatos"></p>
+      <h3>Cambiar mi contraseña</h3>
+      <div class="grid">
+        <label>Contraseña actual<input type="password" id="cActual" autocomplete="current-password"></label>
+        <label>Contraseña nueva (mín. 8)<input type="password" id="cNueva" autocomplete="new-password"></label>
+        <button class="btn" onclick="cambiarMiClave()">Cambiar contraseña</button>
+      </div>
+      <div id="mCuentaU" class="msg"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="s-usuarios">
+    <h2>Usuarios y roles</h2>
+    <div class="aviso"><b>Admin</b>: configura empresa, tasas, cuentas, productos, usuarios, respaldos y auditoría. <b>Usuario</b>: registra tasas, movimientos, presupuestos e ingresos/egresos, y elimina solo lo que registró.</div>
+    <div class="box">
+      <h3 style="margin-top:0">Crear usuario</h3>
+      <div class="grid">
+        <label>Nombre<input id="uNombre"></label>
+        <label>Usuario<input id="uUsuario"></label>
+        <label>Contraseña (mín. 8)<input type="password" id="uClave" autocomplete="new-password"></label>
+        <label>Rol<select id="uRol"><option value="Usuario">Usuario</option><option value="Admin">Admin</option></select></label>
+        <button class="btn" onclick="crearUsuario()">Crear usuario</button>
+      </div>
+      <div id="mUsuarios" class="msg"></div>
+    </div>
+    <div class="wrap" id="tUsuarios"></div>
+  </section>
+
+  <section class="sec" id="s-auditoria">
+    <h2>Auditoría (últimos 500 eventos)</h2>
+    <div class="toolbar noprint"><button class="btn alt" onclick="renderAuditoria()">Actualizar</button></div>
+    <div class="wrap" id="tAud"></div>
+  </section>
+
+  <section class="sec" id="s-resp">
+    <h2>Respaldo de datos</h2>
+    <div class="box">
+      <p>Los datos están en la base de datos del servidor. Descargue un respaldo (.json) periódicamente como copia adicional.</p>
+      <div class="grid">
+        <button class="btn" onclick="exportar()">Descargar respaldo (.json)</button>
+        <label>Restaurar desde respaldo<input type="file" accept="application/json" onchange="importar(this.files[0]);this.value=''"></label>
+        <button class="btn peligro" onclick="borrarTodo()">Borrar datos operativos</button>
+      </div>
+      <p class="hint">Borrar datos conserva usuarios, auditoría y cuentas base. Restaurar reemplaza los datos actuales.</p>
+      <div id="mResp" class="msg"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+// ==CORE==
+const CUENTAS_BASE = [
+ [1101,'Caja Bs','Activo corriente'],[1102,'Caja USD','Activo corriente'],[1103,'Bancos Bs','Activo corriente'],
+ [1104,'Bancos USD','Activo corriente'],[1201,'Cuentas por cobrar clientes','Activo corriente'],
+ [1301,'Inventario de mercancías','Activo corriente'],[2101,'Cuentas por pagar proveedores','Pasivo corriente'],
+ [2102,'IVA por pagar','Pasivo corriente'],[3101,'Capital social','Patrimonio'],
+ [4101,'Ingresos por venta de bienes','Ingreso'],[4102,'Ingresos por prestación de servicios','Ingreso'],
+ [4201,'Otros ingresos','Ingreso'],[5101,'Costo de ventas','Costo'],[6101,'Sueldos y salarios','Gasto operativo'],
+ [6102,'Alquileres','Gasto operativo'],[6103,'Servicios públicos','Gasto operativo'],[6104,'Publicidad y mercadeo','Gasto operativo'],
+ [6105,'Honorarios profesionales','Gasto operativo'],[6106,'Gastos bancarios','Gasto operativo'],
+ [6107,'Depreciación','Gasto operativo'],[6108,'Otros gastos','Gasto operativo']
+];
+const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function tasaPara(tasas, f){
+  const t=[...tasas].sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  let r=null; for(const x of t){ if(x.fecha<=f) r=x.tasa; else break; }
+  return r;
+}
+// Cálculo del kárdex: PEPS y promedio ponderado, en orden cronológico por producto
+function calcKardex(DB){
+  const prods={}; for(const p of DB.productos) prods[p.codigo]=p;
+  const movs=[...DB.movs].sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.id-b.id);
+  const sims={}, out={};
+  for(const m of movs){
+    const p=prods[m.codigo];
+    const st=sims[m.codigo]||(sims[m.codigo]={layers:[],pq:0,pv:0});
+    const tasa=(Number(m.tasaManual)>0)?Number(m.tasaManual):tasaPara(DB.tasas,m.fecha);
+    const q=Number(m.cantidad)||0;
+    const r={flag:'OK',costoPEPS:0,costoProm:0,totalBs:0,totalUsd:0,unitBs:0};
+    if(m.tipo==='Entrada'){
+      let u=Number(m.costo)||0;
+      if(m.moneda==='USD'){ if(!tasa) r.flag='FALTA TASA BCV'; u=u*(tasa||0); }
+      r.unitBs=u;
+      st.layers.push({q,u}); st.pq+=q; st.pv+=q*u;
+      r.totalBs=q*u;
+    } else {
+      const avail=st.layers.reduce((s,L)=>s+L.q,0);
+      if(q>avail+1e-9) r.flag='STOCK INSUFICIENTE';
+      let need=q, cost=0;
+      for(const L of st.layers){ if(need<=1e-9) break; const take=Math.min(need,L.q); cost+=take*L.u; L.q-=take; need-=take; }
+      st.layers=st.layers.filter(L=>L.q>1e-9);
+      const avg=st.pq>0?st.pv/st.pq:0;
+      const cp=q*avg; st.pv-=cp; st.pq-=q;
+      if(st.pq<0){ st.pq=0; st.pv=0; }
+      r.costoPEPS=cost; r.costoProm=cp;
+      r.totalBs=(p&&p.metodo==='Promedio')?cp:cost;
+      if(p && p.metodo==='Promedio') r.asig=cp; else r.asig=cost;
+    }
+    if(m.tipo==='Entrada') r.asig=0;
+    r.totalUsd=(tasa&&r.totalBs)?r.totalBs/tasa:0;
+    r.sPEPS=st.layers.reduce((s,L)=>s+L.q,0);
+    r.vPEPS=st.layers.reduce((s,L)=>s+L.q*L.u,0);
+    r.sProm=st.pq; r.vProm=st.pv; r.uProm=st.pq>0?st.pv/st.pq:0;
+    out[m.id]=r;
+  }
+  return {movs,out,sims,prods};
+}
+function resumenDia(DB,f){
+  const K=calcKardex(DB);
+  const tasa=tasaPara(DB.tasas,f)||0;
+  const D={tasa,presBs:0,ventasBs:0,ventasUsd:0,costo:0,compras:0,alertas:0,unidades:0,ingBs:0,ingUsd:0,egrBs:0,egrUsd:0,servBs:0,servUsd:0};
+  for(const x of DB.presup) if(x.fecha===f){
+    const p=K.prods[x.codigo]; const pr=(Number(x.precio)>0)?Number(x.precio):(p?Number(p.vnr)||0:0);
+    D.presBs+=(Number(x.unidades)||0)*pr;
+  }
+  D.presUsd=tasa?D.presBs/tasa:0;
+  for(const m of K.movs) if(m.fecha===f){
+    const r=K.out[m.id];
+    const t=(Number(m.tasaManual)>0)?Number(m.tasaManual):tasaPara(DB.tasas,m.fecha)||0;
+    if(m.tipo==='Salida'){
+      const vb=(Number(m.cantidad)||0)*(Number(m.precio)||0);
+      D.ventasBs+=vb; D.ventasUsd+=t?vb/t:0; D.costo+=r.asig; D.unidades+=Number(m.cantidad)||0;
+    } else D.compras+=r.totalBs;
+    if(r.flag!=='OK') D.alertas++;
+  }
+  for(const g of DB.registros) if(g.fecha===f){
+    const t=(Number(g.tasaManual)>0)?Number(g.tasaManual):tasaPara(DB.tasas,g.fecha)||0;
+    const bs=g.moneda==='USD'?g.monto*t:g.monto;
+    const usd=g.moneda==='USD'?g.monto:(t?g.monto/t:0);
+    if(g.tipo==='Ingreso'){
+      D.ingBs+=bs; D.ingUsd+=usd;
+      const c=Number(g.cuenta); if(c>=4000&&c<5000){ D.servBs+=bs; D.servUsd+=usd; }
+    } else { D.egrBs+=bs; D.egrUsd+=usd; }
+  }
+  D.totalBs=D.ventasBs+D.servBs;
+  D.totalUsd=D.ventasUsd+D.servUsd;
+  D.utilBs=D.totalBs-D.costo;
+  D.utilUsd=D.totalUsd-(tasa?D.costo/tasa:0);
+  D.cumpl=D.presBs>0?D.ventasBs/D.presBs:null;
+  D.flujoBs=D.ingBs-D.egrBs;
+  D.flujoUsd=D.ingUsd-D.egrUsd;
+  return D;
+}
+function resumenMes(DB,y){
+  const rows=[];
+  for(let m=1;m<=12;m++){
+    const pref=y+'-'+String(m).padStart(2,'0');
+    let ing=0,egr=0,ingU=0,egrU=0;
+    for(const g of DB.registros) if(g.fecha.startsWith(pref)){
+      const t=(Number(g.tasaManual)>0)?Number(g.tasaManual):tasaPara(DB.tasas,g.fecha)||0;
+      const bs=g.moneda==='USD'?g.monto*t:g.monto;
+      const usd=g.moneda==='USD'?g.monto:(t?g.monto/t:0);
+      if(g.tipo==='Ingreso'){ ing+=bs; ingU+=usd; } else { egr+=bs; egrU+=usd; }
+    }
+    rows.push({mes:MESES[m-1],ing,egr,res:ing-egr,ingU,egrU,resU:ingU-egrU});
+  }
+  return rows;
+}
+function inventario(DB){
+  const K=calcKardex(DB); const out=[];
+  for(const p of DB.productos){
+    const s=K.sims[p.codigo]||{layers:[],pq:0,pv:0};
+    const sPEPS=s.layers.reduce((a,L)=>a+L.q,0), vPEPS=s.layers.reduce((a,L)=>a+L.q*L.u,0);
+    const sProm=s.pq, vProm=s.pv;
+    const usaProm=p.metodo==='Promedio';
+    const qty=usaProm?sProm:sPEPS, val=usaProm?vProm:vPEPS, unit=qty>0?val/qty:0;
+    const det=(Number(p.vnr)>0&&qty>0)?Math.max(0,unit-Number(p.vnr))*qty:0;
+    out.push({p,sPEPS,vPEPS,sProm,vProm,qty,val,unit,det,reponer:qty<(Number(p.minimo)||0)});
+  }
+  return out;
+}
+// ==/CORE==
+// ---------- Utilidades ----------
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function hoy(){ const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
+function fmtF(s){ return s?s.split('-').reverse().join('/'):''; }
+function num(n,d=2){
+  if(n===null||n===undefined||n===''||!isFinite(n)||(Math.abs(n)<0.005)) return '-';
+  const s=Math.abs(n).toLocaleString('es-VE',{minimumFractionDigits:d,maximumFractionDigits:d});
+  return n<0?'<span class="neg">('+s+')</span>':s;
+}
+function qty(n){ return num(n,2); }
+function pct(n){ return (n===null||n===undefined||!isFinite(n))?'-':(n*100).toLocaleString('es-VE',{minimumFractionDigits:1,maximumFractionDigits:1})+'%'; }
+function badge(t){
+  const c=(t==='OK'||t==='CUMPLIDO'||t==='Registrado'||t==='Activo')?'b-ok':(/STOCK|FALTA|REPONER|Inactivo/.test(t)?'b-bad':(/POR|Sin/.test(t)?'b-warn':'b-gr'));
+  return '<span class="badge '+c+'">'+esc(t)+'</span>';
+}
+
+// ---------- Estado ----------
+let DB=vacio(), USER=null;
+let FECHA=hoy(), ANIO=new Date().getFullYear(), SEC='inicio';
+const BASE_COD=new Set(CUENTAS_BASE.map(c=>c[0]));
+function vacio(){ return {empresa:'',rif:'',tasas:[],cuentas:[],productos:[],movs:[],registros:[],presup:[]}; }
+function esAdmin(){ return !!USER && USER.rol==='Admin'; }
+function puedeBorrar(x){ return esAdmin() || (USER && x.creadoPor===USER.usuario); }
+const btnBorrar=(x,fn)=> puedeBorrar(x)?'<button class="del" onclick="'+fn+'">Eliminar</button>':'<span class="hint">—</span>';
+
+// ---------- Comunicación con el servidor ----------
+async function api(m,ruta,body,silencioso){
+  const opt={method:m,headers:{}};
+  if(body!==undefined){ opt.headers['Content-Type']='application/json'; opt.body=JSON.stringify(body); }
+  let r;
+  try{ r=await fetch(ruta,opt); }catch(e){ throw new Error('No hay conexión con el servidor.'); }
+  let j={}; try{ j=await r.json(); }catch(e){}
+  if(r.status===401 && !silencioso){ mostrarLogin(); throw new Error('Su sesión terminó. Ingrese de nuevo.'); }
+  if(!r.ok) throw new Error(j.error||('Error '+r.status));
+  return j;
+}
+async function cargarDatos(){
+  const d=await api('GET','/api/datos');
+  USER=d.usuario; delete d.usuario; DB=d;
+}
+async function accion(mid,okTxt,fn){
+  try{ await fn(); await cargarDatos(); refrescar(); if(okTxt) msg(mid,okTxt,true); }
+  catch(e){ msg(mid,e.message,false); }
+}
+function msg(id,t,ok){ const el=document.getElementById(id); if(!el) return; el.textContent=t; el.className='msg '+(ok?'o':'e'); clearTimeout(el._t); el._t=setTimeout(()=>{el.className='msg';},6000); }
+function val(id){ return document.getElementById(id).value; }
+function setv(id,v){ const el=document.getElementById(id); if(el) el.value=v; }
+function tasaFecha(f){ return tasaPara(DB.tasas,f); }
+function optProductos(){ return '<option value="">— seleccione —</option>'+DB.productos.map(p=>'<option value="'+esc(p.codigo)+'">'+esc(p.codigo+' · '+p.descripcion)+'</option>').join(''); }
+function optCuentas(){ return DB.cuentas.slice().sort((a,b)=>a.codigo-b.codigo).map(c=>'<option value="'+c.codigo+'">'+c.codigo+' · '+esc(c.nombre)+'</option>').join(''); }
+function nombreCuenta(c){ const x=DB.cuentas.find(y=>String(y.codigo)===String(c)); return x?x.nombre:'Código no existe'; }
+
+// ---------- Acceso ----------
+async function iniciar(){
+  try{
+    const me=await fetch('/api/me'); 
+    if(me.ok){ await cargarDatos(); arrancar(); return; }
+    const st=await (await fetch('/api/estado')).json();
+    st.inicializado ? mostrarLogin() : mostrarSetup();
+  }catch(e){ mostrarLogin(); }
+}
+function mostrarLogin(){
+  DB=vacio(); USER=null;
+  document.getElementById('overlay').classList.add('on');
+  document.getElementById('cajaLogin').style.display='';
+  document.getElementById('cajaSetup').style.display='none';
+  document.body.classList.remove('rol-usuario');
+  setTimeout(()=>{ const u=document.getElementById('lUsuario'); if(u) u.focus(); },50);
+}
+function mostrarSetup(){
+  document.getElementById('overlay').classList.add('on');
+  document.getElementById('cajaLogin').style.display='none';
+  document.getElementById('cajaSetup').style.display='';
+}
+async function entrar(ev){
+  ev.preventDefault();
+  try{
+    const r=await api('POST','/api/login',{usuario:val('lUsuario'),clave:val('lClave')},true);
+    setv('lClave','');
+    USER=r.usuario; await cargarDatos(); arrancar();
+  }catch(e){ msg('mLogin',e.message,false); }
+}
+async function crearAdmin(ev){
+  ev.preventDefault();
+  if(val('sClave')!==val('sClave2')) return msg('mSetup','Las contraseñas no coinciden.',false);
+  try{
+    const r=await api('POST','/api/setup',{nombre:val('sNombre'),usuario:val('sUsuario'),clave:val('sClave')},true);
+    USER=r.usuario; await cargarDatos(); arrancar();
+  }catch(e){ msg('mSetup',e.message,false); }
+}
+async function salir(){
+  try{ await api('POST','/api/logout',{},true); }catch(e){}
+  mostrarLogin();
+}
+function arrancar(){
+  document.getElementById('overlay').classList.remove('on');
+  document.body.classList.toggle('rol-usuario', !esAdmin());
+  document.getElementById('hdrUsuario').textContent=USER.nombre+' ('+USER.rol+')';
+  if(!esAdmin() && (SEC==='usuarios'||SEC==='auditoria'||SEC==='resp')) SEC='inicio';
+  ir(SEC);
+}
+
+// ---------- Navegación ----------
+document.getElementById('nav').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) ir(b.dataset.s); });
+function ir(s){
+  SEC=s;
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
+  document.querySelectorAll('.sec').forEach(x=>x.classList.toggle('on',x.id==='s-'+s));
+  refrescar();
+}
+function setFecha(f){ if(f){ FECHA=f; refrescar(); } }
+function setAnio(y){ if(y){ ANIO=Number(y); refrescar(); } }
+function refrescar(){
+  if(!USER) return;
+  const t=tasaFecha(FECHA);
+  document.getElementById('hdrEmp').textContent=DB.empresa?(DB.empresa+(DB.rif?' · RIF '+DB.rif:'')):'Configure la empresa en Parámetros';
+  document.getElementById('hdrFecha').textContent=fmtF(FECHA);
+  document.getElementById('hdrTasa').textContent=t?num(t,4)+' Bs/USD':'sin tasa';
+  document.getElementById('fechaTrab').value=FECHA;
+  document.getElementById('anio').value=ANIO;
+  const fn={inicio:renderInicio,param:renderParam,prod:renderProd,mov:renderMov,kardex:renderKardex,pres:renderPres,reg:renderReg,cierre:renderCierre,cuenta:renderCuenta,usuarios:renderUsuarios,auditoria:renderAuditoria,resp:()=>{}}[SEC];
+  if(fn) fn();
+}
+
+// ---------- INICIO ----------
+function renderInicio(){
+  const D=resumenDia(DB,FECHA);
+  document.getElementById('tInicio').textContent='Indicadores del día '+fmtF(FECHA);
+  const k=(l,v,s)=>'<div class="kpi"><div class="l">'+l+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div></div>';
+  const inv=inventario(DB);
+  const neto=inv.reduce((a,x)=>a+x.val-x.det,0);
+  document.getElementById('kpis').innerHTML=
+    k('Ventas de productos (Bs)',num(D.ventasBs),'USD '+num(D.ventasUsd))+
+    k('Cumplimiento del presupuesto',pct(D.cumpl),'Presupuesto: '+num(D.presBs)+' Bs')+
+    k('Utilidad bruta del día (Bs)',num(D.utilBs),'Costo de ventas: '+num(D.costo)+' Bs')+
+    k('Flujo neto de caja (Bs)',num(D.flujoBs),'Ingresos '+num(D.ingBs,0)+' · Egresos '+num(D.egrBs,0))+
+    k('Valor neto del inventario (Bs)',num(neto),'Productos registrados: '+DB.productos.length)+
+    k('Productos a reponer',inv.filter(x=>x.reponer).length,'Alertas del día: '+D.alertas)+
+    k('Tasa BCV del día',num(D.tasa,4),'Bs por 1 USD');
+  const rows=resumenMes(DB,ANIO);
+  const max=Math.max(1,...rows.map(r=>Math.max(r.ing,r.egr)));
+  document.getElementById('chartMes').innerHTML=rows.map(r=>
+    '<div class="g"><div class="p"><div class="bar" title="Ingresos '+num(r.ing)+'" style="height:'+(r.ing/max*100)+'%;background:#2E75B6"></div><div class="bar" title="Egresos '+num(r.egr)+'" style="height:'+(r.egr/max*100)+'%;background:#C9A227"></div></div><div class="lb">'+r.mes.slice(0,3)+'</div></div>').join('');
+  const t={ing:0,egr:0,res:0,ingU:0,egrU:0,resU:0};
+  const filas=rows.map(r=>{ t.ing+=r.ing; t.egr+=r.egr; t.res+=r.res; t.ingU+=r.ingU; t.egrU+=r.egrU; t.resU+=r.resU;
+    return '<tr><td>'+r.mes+'</td><td class="n">'+num(r.ing)+'</td><td class="n">'+num(r.egr)+'</td><td class="n">'+num(r.res)+'</td><td class="n">'+num(r.ingU)+'</td><td class="n">'+num(r.egrU)+'</td><td class="n">'+num(r.resU)+'</td></tr>'; }).join('');
+  document.getElementById('tMes').innerHTML='<tr><th>Mes</th><th class="n">Ingresos Bs</th><th class="n">Egresos Bs</th><th class="n">Resultado Bs</th><th class="n">Ingresos USD</th><th class="n">Egresos USD</th><th class="n">Resultado USD</th></tr>'+filas+
+    '<tr class="tot"><td>Total '+ANIO+'</td><td class="n">'+num(t.ing)+'</td><td class="n">'+num(t.egr)+'</td><td class="n">'+num(t.res)+'</td><td class="n">'+num(t.ingU)+'</td><td class="n">'+num(t.egrU)+'</td><td class="n">'+num(t.resU)+'</td></tr>';
+}
+
+// ---------- PARÁMETROS ----------
+function renderParam(){
+  if(!val('pEmp') && DB.empresa) setv('pEmp',DB.empresa);
+  if(!val('pRif') && DB.rif) setv('pRif',DB.rif);
+  if(!val('tFecha')) setv('tFecha',FECHA);
+  const t=[...DB.tasas].sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  document.getElementById('tTasas').innerHTML='<tr><th>Fecha valor</th><th class="n">Tasa (Bs/USD)</th><th class="solo-admin"></th></tr>'+
+    (t.length?t.map(x=>'<tr><td>'+fmtF(x.fecha)+'</td><td class="n">'+num(x.tasa,4)+'</td><td class="solo-admin"><button class="del" onclick="delTasa('+x.id+')">Eliminar</button></td></tr>').join(''):'<tr><td colspan="3" style="color:#6b7280">Sin tasas registradas.</td></tr>');
+  document.getElementById('tCuentas').innerHTML='<tr><th>Código</th><th>Nombre</th><th>Clasificación</th><th class="solo-admin"></th></tr>'+
+    DB.cuentas.slice().sort((a,b)=>a.codigo-b.codigo).map(x=>'<tr><td>'+x.codigo+'</td><td>'+esc(x.nombre)+'</td><td>'+esc(x.clasificacion)+'</td><td class="solo-admin">'+(BASE_COD.has(x.codigo)?'<span class="hint">base</span>':'<button class="del" onclick="delCuenta('+x.codigo+')">Eliminar</button>')+'</td></tr>').join('');
+}
+function saveEmp(){ accion('mEmp','Datos guardados.',()=>api('PUT','/api/empresa',{empresa:val('pEmp').trim(),rif:val('pRif').trim()})); }
+function addTasa(){
+  const f=val('tFecha'), t=Number(val('tTasa'));
+  if(!f||!(t>0)) return msg('mTasa','Indique la fecha valor y una tasa mayor que cero.',false);
+  accion('mTasa','Tasa registrada.',async()=>{ await api('POST','/api/tasas',{fecha:f,tasa:t}); setv('tTasa',''); });
+}
+function delTasa(id){ if(!confirm('¿Eliminar esta tasa?')) return; accion('mTasa','Tasa eliminada.',()=>api('DELETE','/api/tasas/'+id)); }
+function addCuenta(){
+  const cod=Number(val('cCod')), nom=val('cNom').trim(), cla=val('cCla');
+  if(!(cod>0)||!nom) return msg('mCuenta','Indique código y nombre.',false);
+  accion('mCuenta','Cuenta agregada.',async()=>{ await api('POST','/api/cuentas',{codigo:cod,nombre:nom,clasificacion:cla}); setv('cCod',''); setv('cNom',''); });
+}
+function delCuenta(cod){ if(!confirm('¿Eliminar la cuenta '+cod+'?')) return; accion('mCuenta','Cuenta eliminada.',()=>api('DELETE','/api/cuentas/'+cod)); }
+
+// ---------- PRODUCTOS ----------
+function renderProd(){
+  const inv=inventario(DB); const map={}; inv.forEach(x=>map[x.p.codigo]=x);
+  document.getElementById('tProd').innerHTML='<table><tr><th>Código</th><th>Descripción</th><th>Unidad</th><th>Categoría</th><th>Método</th><th class="n">Stock mínimo</th><th class="n">VNR Bs</th><th class="n">Saldo (unid.)</th><th>Alerta</th><th class="solo-admin"></th></tr>'+
+    (DB.productos.length?DB.productos.map(p=>{ const x=map[p.codigo]; return '<tr><td>'+esc(p.codigo)+'</td><td>'+esc(p.descripcion)+'</td><td>'+esc(p.unidad)+'</td><td>'+esc(p.categoria)+'</td><td>'+(p.metodo==='Promedio'?'Promedio ponderado':'PEPS')+'</td><td class="n">'+qty(p.minimo)+'</td><td class="n">'+num(p.vnr)+'</td><td class="n">'+qty(x.qty)+'</td><td>'+badge(x.reponer?'REPONER':'OK')+'</td><td class="solo-admin"><button class="del" onclick="delProd(\''+esc(p.codigo)+'\')">Eliminar</button></td></tr>'; }).join(''):'<tr><td colspan="10" style="color:#6b7280;padding:12px">Sin productos.</td></tr>')+'</table>';
+}
+function addProd(){
+  const cod=val('prCod').trim(), des=val('prDes').trim();
+  if(!cod||!des) return msg('mProd','Código y descripción son obligatorios.',false);
+  accion('mProd','Producto agregado.',async()=>{
+    await api('POST','/api/productos',{codigo:cod,descripcion:des,unidad:val('prUni'),categoria:val('prCat'),metodo:val('prMet'),minimo:Number(val('prMin'))||0,vnr:Number(val('prVnr'))||0});
+    setv('prCod',''); setv('prDes','');
+  });
+}
+function delProd(cod){ if(!confirm('¿Eliminar el producto '+cod+'?')) return; accion('mProd','Producto eliminado.',()=>api('DELETE','/api/productos/'+encodeURIComponent(cod))); }
+
+// ---------- MOVIMIENTOS ----------
+function renderMov(){
+  if(!val('mFecha')) setv('mFecha',FECHA);
+  const sel=val('mProd_'); document.getElementById('mProd_').innerHTML=optProductos(); setv('mProd_',sel);
+  const K=calcKardex(DB);
+  document.getElementById('tMov').innerHTML='<table><tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th class="n">Cantidad</th><th>Moneda</th><th class="n">Costo unit. orig.</th><th class="n">Tasa</th><th class="n">Costo unit. Bs</th><th class="n">Total Bs</th><th class="n">Total USD (ref.)</th><th>Método</th><th class="n">Costo salida Bs</th><th class="n">Precio venta Bs</th><th class="n">Venta Bs</th><th>Control</th><th>Registró</th><th></th></tr>'+
+    (K.movs.length?K.movs.map(m=>{ const r=K.out[m.id]; const p=K.prods[m.codigo]; const t=(Number(m.tasaManual)>0)?Number(m.tasaManual):tasaFecha(m.fecha);
+      const venta=m.tipo==='Salida'?(Number(m.cantidad)||0)*(Number(m.precio)||0):0;
+      return '<tr><td>'+fmtF(m.fecha)+'</td><td>'+esc(p?p.descripcion:m.codigo)+'</td><td>'+m.tipo+'</td><td class="n">'+qty(m.cantidad)+'</td><td>'+m.moneda+'</td><td class="n">'+(m.tipo==='Entrada'?num(m.costo):'-')+'</td><td class="n">'+num(t,4)+'</td><td class="n">'+(m.tipo==='Entrada'?num(r.unitBs):'-')+'</td><td class="n">'+num(r.totalBs)+'</td><td class="n">'+num(r.totalUsd)+'</td><td>'+(p&&p.metodo==='Promedio'?'Promedio':'PEPS')+'</td><td class="n">'+(m.tipo==='Salida'?num(r.asig):'-')+'</td><td class="n">'+(m.tipo==='Salida'?num(m.precio):'-')+'</td><td class="n">'+num(venta)+'</td><td>'+badge(r.flag)+'</td><td>'+esc(m.creadoPor)+'</td><td>'+btnBorrar(m,'delMov('+m.id+')')+'</td></tr>'; }).join(''):'<tr><td colspan="17" style="color:#6b7280;padding:12px">Sin movimientos registrados.</td></tr>')+'</table>';
+}
+function addMov(){
+  const body={fecha:val('mFecha'),codigo:val('mProd_'),tipo:val('mTipo'),cantidad:Number(val('mCant')),moneda:val('mMon'),
+              costo:Number(val('mCosto'))||0,tasaManual:Number(val('mTasaM'))||null,precio:Number(val('mPrecio'))||0};
+  if(body.tipo==='Salida'){ body.costo=0; }
+  accion('mMov','Movimiento registrado.',async()=>{ await api('POST','/api/movimientos',body); setv('mCant',''); setv('mCosto',''); setv('mPrecio',''); setv('mTasaM',''); });
+}
+function delMov(id){ if(!confirm('¿Eliminar este movimiento?')) return; accion('mMov','Movimiento eliminado.',()=>api('DELETE','/api/movimientos/'+id)); }
+
+// ---------- KÁRDEX ----------
+function renderKardex(){
+  const sel=document.getElementById('kProd'); const prev=sel.value;
+  sel.innerHTML=DB.productos.map(p=>'<option value="'+esc(p.codigo)+'">'+esc(p.codigo+' · '+p.descripcion)+'</option>').join('');
+  if(prev&&DB.productos.some(p=>p.codigo===prev)) sel.value=prev;
+  const cod=sel.value; const K=calcKardex(DB);
+  const filas=K.movs.filter(m=>m.codigo===cod).map(m=>{ const r=K.out[m.id]; return '<tr><td>'+fmtF(m.fecha)+'</td><td>'+m.tipo+'</td><td class="n">'+qty(m.tipo==='Entrada'?m.cantidad:0)+'</td><td class="n">'+num(m.tipo==='Entrada'?r.totalBs:0)+'</td><td class="n">'+qty(m.tipo==='Salida'?m.cantidad:0)+'</td><td class="n">'+num(r.costoPEPS)+'</td><td class="n">'+qty(r.sPEPS)+'</td><td class="n">'+num(r.vPEPS)+'</td><td class="n">'+num(m.tipo==='Salida'?r.costoProm:0)+'</td><td class="n">'+qty(r.sProm)+'</td><td class="n">'+num(r.vProm)+'</td><td class="n">'+num(r.uProm)+'</td><td>'+badge(r.flag)+'</td></tr>'; }).join('');
+  document.getElementById('tKardex').innerHTML='<table><tr><th>Fecha</th><th>Tipo</th><th class="n">Entrada unid.</th><th class="n">Entrada Bs</th><th class="n">Salida unid.</th><th class="n">Costo salida PEPS</th><th class="n">Saldo unid. PEPS</th><th class="n">Valor PEPS</th><th class="n">Costo salida Prom.</th><th class="n">Saldo unid. Prom.</th><th class="n">Valor Prom.</th><th class="n">Costo unit. Prom.</th><th>Control</th></tr>'+(filas||'<tr><td colspan="13" style="color:#6b7280;padding:12px">Sin movimientos para este producto.</td></tr>')+'</table>';
+  const inv=inventario(DB);
+  document.getElementById('tInv').innerHTML='<table><tr><th>Código</th><th>Descripción</th><th>Método asignado</th><th class="n">Saldo unid.</th><th class="n">Valor PEPS Bs</th><th class="n">Valor Prom. Bs</th><th class="n">Valor asignado Bs</th><th class="n">Costo unit. Bs</th><th class="n">Deterioro NIC 2 Bs</th><th>Alerta</th></tr>'+
+    (inv.length?inv.map(x=>'<tr><td>'+esc(x.p.codigo)+'</td><td>'+esc(x.p.descripcion)+'</td><td>'+(x.p.metodo==='Promedio'?'Promedio ponderado':'PEPS')+'</td><td class="n">'+qty(x.qty)+'</td><td class="n">'+num(x.vPEPS)+'</td><td class="n">'+num(x.vProm)+'</td><td class="n">'+num(x.val)+'</td><td class="n">'+num(x.unit)+'</td><td class="n">'+num(x.det)+'</td><td>'+badge(x.reponer?'REPONER':'OK')+'</td></tr>').join(''):'<tr><td colspan="10" style="color:#6b7280;padding:12px">Sin productos.</td></tr>')+'</table>';
+}
+
+// ---------- PRESUPUESTO ----------
+function renderPres(){
+  if(!val('pvFecha')) setv('pvFecha',FECHA);
+  const sel=val('pvProd'); document.getElementById('pvProd').innerHTML=optProductos(); setv('pvProd',sel);
+  const K=calcKardex(DB);
+  const filas=DB.presup.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha)).map(x=>{
+    const p=K.prods[x.codigo]; const pr=(Number(x.precio)>0)?Number(x.precio):(p?Number(p.vnr)||0:0);
+    const presBs=(Number(x.unidades)||0)*pr;
+    const sal=K.movs.filter(m=>m.fecha===x.fecha&&m.codigo===x.codigo&&m.tipo==='Salida');
+    const un=sal.reduce((s,m)=>s+(Number(m.cantidad)||0),0);
+    const vb=sal.reduce((s,m)=>s+(Number(m.cantidad)||0)*(Number(m.precio)||0),0);
+    const cum=(Number(x.unidades)>0)?un/Number(x.unidades):null;
+    return '<tr><td>'+fmtF(x.fecha)+'</td><td>'+esc(p?p.descripcion:x.codigo)+'</td><td class="n">'+qty(x.unidades)+'</td><td class="n">'+num(pr)+'</td><td class="n">'+num(presBs)+'</td><td class="n">'+qty(un)+'</td><td class="n">'+num(vb)+'</td><td class="n">'+num(vb-presBs)+'</td><td class="n">'+pct(cum)+'</td><td>'+badge(un>=(Number(x.unidades)||0)?'CUMPLIDO':'POR DEBAJO')+'</td><td>'+esc(x.creadoPor)+'</td><td>'+btnBorrar(x,'delPres('+x.id+')')+'</td></tr>';
+  }).join('');
+  document.getElementById('tPres').innerHTML='<table><tr><th>Fecha</th><th>Producto</th><th class="n">Unid. presup.</th><th class="n">Precio Bs</th><th class="n">Ventas presup. Bs</th><th class="n">Unid. vendidas</th><th class="n">Ventas reales Bs</th><th class="n">Variación Bs</th><th class="n">Cumplimiento</th><th>Estado</th><th>Registró</th><th></th></tr>'+(filas||'<tr><td colspan="12" style="color:#6b7280;padding:12px">Sin presupuestos registrados.</td></tr>')+'</table>';
+}
+function addPres(){
+  const body={fecha:val('pvFecha'),codigo:val('pvProd'),unidades:Number(val('pvUni')),precio:Number(val('pvPre'))||0};
+  accion('mPres','Presupuesto registrado.',async()=>{ await api('POST','/api/presupuesto',body); setv('pvUni',''); setv('pvPre',''); });
+}
+function delPres(id){ if(!confirm('¿Eliminar este presupuesto?')) return; accion('mPres','Presupuesto eliminado.',()=>api('DELETE','/api/presupuesto/'+id)); }
+
+// ---------- REGISTRO ----------
+function renderReg(){
+  if(!val('rFecha')) setv('rFecha',FECHA);
+  const sel=val('rCuenta'); document.getElementById('rCuenta').innerHTML=optCuentas(); setv('rCuenta',sel);
+  let saldo=0;
+  const filas=DB.registros.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.id-b.id).map(g=>{
+    const t=(Number(g.tasaManual)>0)?Number(g.tasaManual):tasaFecha(g.fecha)||0;
+    const bs=g.moneda==='USD'?g.monto*t:g.monto; const usd=g.moneda==='USD'?g.monto:(t?g.monto/t:0);
+    const ing=g.tipo==='Ingreso'?bs:0, egr=g.tipo==='Egreso'?bs:0; saldo+=ing-egr;
+    return '<tr><td>'+fmtF(g.fecha)+'</td><td>'+g.tipo+'</td><td>'+g.cuenta+' · '+esc(nombreCuenta(g.cuenta))+'</td><td>'+esc(g.descripcion)+'</td><td>'+esc(g.tercero)+'</td><td>'+esc(g.documento)+'</td><td>'+g.moneda+'</td><td class="n">'+num(g.monto)+'</td><td class="n">'+num(t,4)+'</td><td class="n">'+num(ing)+'</td><td class="n">'+num(egr)+'</td><td class="n">'+num(usd)+'</td><td class="n">'+num(saldo)+'</td><td>'+esc(g.creadoPor)+'</td><td>'+btnBorrar(g,'delReg('+g.id+')')+'</td></tr>';
+  }).join('');
+  document.getElementById('tReg').innerHTML='<table><tr><th>Fecha</th><th>Tipo</th><th>Cuenta</th><th>Descripción</th><th>Tercero</th><th>Documento</th><th>Moneda</th><th class="n">Monto</th><th class="n">Tasa</th><th class="n">Ingreso Bs</th><th class="n">Egreso Bs</th><th class="n">Monto USD</th><th class="n">Saldo acumulado Bs</th><th>Registró</th><th></th></tr>'+(filas||'<tr><td colspan="15" style="color:#6b7280;padding:12px">Sin registros.</td></tr>')+'</table>';
+}
+function addReg(){
+  const body={fecha:val('rFecha'),tipo:val('rTipo'),cuenta:Number(val('rCuenta')),descripcion:val('rDes'),tercero:val('rTer'),documento:val('rDoc'),moneda:val('rMon'),monto:Number(val('rMonto')),tasaManual:Number(val('rTasaM'))||null};
+  accion('mReg','Registro guardado.',async()=>{ await api('POST','/api/registros',body); ['rDes','rTer','rDoc','rMonto','rTasaM'].forEach(i=>setv(i,'')); });
+}
+function delReg(id){ if(!confirm('¿Eliminar este registro?')) return; accion('mReg','Registro eliminado.',()=>api('DELETE','/api/registros/'+id)); }
+
+// ---------- CIERRE ----------
+function renderCierre(){
+  const D=resumenDia(DB,FECHA);
+  document.getElementById('tCierre').textContent='Cierre diario · '+fmtF(FECHA)+' · Tasa BCV '+(D.tasa?num(D.tasa,4):'sin registrar');
+  const fila=(a,b,c,bold)=>'<tr'+(bold?' class="tot"':'')+'><td>'+a+'</td><td class="n">'+b+'</td><td class="n">'+c+'</td></tr>';
+  document.getElementById('cVentas').innerHTML='<tr><th>Concepto</th><th class="n">Bs</th><th class="n">USD</th></tr>'+
+    fila('Presupuesto de ventas de productos',num(D.presBs),num(D.presUsd))+fila('Ventas reales de productos',num(D.ventasBs),num(D.ventasUsd))+
+    fila('Ingresos por servicios y otros (cuentas 4xxx)',num(D.servBs),num(D.servUsd))+fila('Total ventas del día',num(D.totalBs),num(D.totalUsd),true)+
+    fila('Variación de productos vs presupuesto',num(D.ventasBs-D.presBs),num(D.ventasUsd-D.presUsd))+'<tr><td>Cumplimiento del presupuesto</td><td class="n">'+pct(D.cumpl)+'</td><td class="n">-</td></tr>';
+  document.getElementById('cCostos').innerHTML='<tr><th>Concepto</th><th class="n">Bs</th></tr>'+
+    '<tr><td>Costo de ventas (salidas de inventario)</td><td class="n">'+num(D.costo)+'</td></tr><tr class="tot"><td>Utilidad bruta del día</td><td class="n">'+num(D.utilBs)+'</td></tr>'+
+    '<tr><td>Compras / entradas de inventario</td><td class="n">'+num(D.compras)+'</td></tr><tr><td>Movimientos con alerta</td><td class="n">'+D.alertas+'</td></tr>';
+  document.getElementById('cCaja').innerHTML='<tr><th>Concepto</th><th class="n">Bs</th><th class="n">USD</th></tr>'+
+    fila('Ingresos de caja',num(D.ingBs),num(D.ingUsd))+fila('Egresos de caja',num(D.egrBs),num(D.egrUsd))+fila('Flujo neto de caja del día',num(D.flujoBs),num(D.flujoUsd),true);
+  const K=calcKardex(DB);
+  let T={pr:0,ur:0,vb:0,cu:0,ut:0,up:0};
+  const filas=DB.productos.map(p=>{
+    const pres=DB.presup.filter(x=>x.fecha===FECHA&&x.codigo===p.codigo);
+    const presBs=pres.reduce((s,x)=>s+(Number(x.unidades)||0)*((Number(x.precio)>0)?Number(x.precio):(Number(p.vnr)||0)),0);
+    const sal=K.movs.filter(m=>m.fecha===FECHA&&m.codigo===p.codigo&&m.tipo==='Salida');
+    const up=sal.reduce((s,m)=>s+(Number(m.cantidad)||0),0);
+    const vb=sal.reduce((s,m)=>s+(Number(m.cantidad)||0)*(Number(m.precio)||0),0);
+    const co=sal.reduce((s,m)=>s+K.out[m.id].asig,0);
+    const ur=pres.reduce((s,x)=>s+(Number(x.unidades)||0),0);
+    T.pr+=presBs; T.vb+=vb; T.cu+=co; T.ut+=vb-co; T.ur+=ur; T.up+=up;
+    return '<tr><td>'+esc(p.codigo)+'</td><td>'+esc(p.descripcion)+'</td><td class="n">'+qty(ur)+'</td><td class="n">'+qty(up)+'</td><td class="n">'+num(presBs)+'</td><td class="n">'+num(vb)+'</td><td class="n">'+num(vb-presBs)+'</td><td class="n">'+pct(presBs>0?vb/presBs:null)+'</td><td class="n">'+num(co)+'</td><td class="n">'+num(vb-co)+'</td></tr>';
+  }).join('');
+  document.getElementById('cProd').innerHTML='<table><tr><th>Código</th><th>Producto</th><th class="n">Unid. presup.</th><th class="n">Unid. vendidas</th><th class="n">Ventas presup. Bs</th><th class="n">Ventas reales Bs</th><th class="n">Variación Bs</th><th class="n">Cumpl. %</th><th class="n">Costo ventas Bs</th><th class="n">Utilidad bruta Bs</th></tr>'+
+    (filas||'<tr><td colspan="10" style="color:#6b7280;padding:12px">Sin productos.</td></tr>')+
+    (DB.productos.length?'<tr class="tot"><td>TOTAL</td><td></td><td class="n">'+qty(T.ur)+'</td><td class="n">'+qty(T.up)+'</td><td class="n">'+num(T.pr)+'</td><td class="n">'+num(T.vb)+'</td><td class="n">'+num(T.vb-T.pr)+'</td><td class="n">'+pct(T.pr>0?T.vb/T.pr:null)+'</td><td class="n">'+num(T.cu)+'</td><td class="n">'+num(T.ut)+'</td></tr>':'')+'</table>';
+}
+
+// ---------- MI CUENTA ----------
+function renderCuenta(){
+  document.getElementById('miDatos').innerHTML='Usuario: <b>'+esc(USER.usuario)+'</b> · Nombre: <b>'+esc(USER.nombre)+'</b> · Rol: <b>'+USER.rol+'</b>';
+}
+async function cambiarMiClave(){
+  const a=val('cActual'), n=val('cNueva');
+  try{
+    await api('POST','/api/mi-clave',{actual:a,nueva:n});
+    setv('cActual',''); setv('cNueva',''); msg('mCuentaU','Contraseña cambiada.',true);
+  }catch(e){ msg('mCuentaU',e.message,false); }
+}
+
+// ---------- USUARIOS (Admin) ----------
+async function renderUsuarios(){
+  try{
+    const lista=await api('GET','/api/usuarios');
+    document.getElementById('tUsuarios').innerHTML='<table><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th>Creado</th><th>Acciones</th></tr>'+
+      lista.map(u=>'<tr><td>'+esc(u.usuario)+'</td><td>'+esc(u.nombre)+'</td><td>'+u.rol+'</td><td>'+badge(u.activo?'Activo':'Inactivo')+'</td><td>'+esc(u.creadoEn.slice(0,10))+'</td><td>'+
+        '<button class="lnk" onclick="cambiarRol('+u.id+',\''+(u.rol==='Admin'?'Usuario':'Admin')+'\')">Hacer '+(u.rol==='Admin'?'Usuario':'Admin')+'</button>'+
+        '<button class="lnk" onclick="alternarActivo('+u.id+','+(!u.activo)+')">'+(u.activo?'Desactivar':'Activar')+'</button>'+
+        '<button class="lnk" onclick="cambiarClave('+u.id+')">Nueva clave</button></td></tr>').join('')+'</table>';
+  }catch(e){ msg('mUsuarios',e.message,false); }
+}
+function crearUsuario(){
+  const body={nombre:val('uNombre'),usuario:val('uUsuario'),clave:val('uClave'),rol:val('uRol')};
+  accion('mUsuarios','Usuario creado.',async()=>{ await api('POST','/api/usuarios',body); ['uNombre','uUsuario','uClave'].forEach(i=>setv(i,'')); await renderUsuarios(); });
+}
+async function cambiarRol(id,rol){ if(!confirm('¿Cambiar el rol de este usuario a '+rol+'?')) return; await accionUsuario(id,{rol}); }
+async function alternarActivo(id,activo){ if(!confirm(activo?'¿Activar este usuario?':'¿Desactivar este usuario? Perderá el acceso de inmediato.')) return; await accionUsuario(id,{activo}); }
+async function cambiarClave(id){ const c=prompt('Nueva contraseña (mínimo 8 caracteres):'); if(c) await accionUsuario(id,{clave:c}); }
+async function accionUsuario(id,cambios){
+  try{ const cur=(await api('GET','/api/usuarios')).find(u=>u.id===id);
+       await api('PUT','/api/usuarios/'+id,Object.assign({nombre:cur.nombre,rol:cur.rol,activo:cur.activo},cambios));
+       msg('mUsuarios','Usuario actualizado.',true); await renderUsuarios(); }
+  catch(e){ msg('mUsuarios',e.message,false); }
+}
+
+// ---------- AUDITORÍA (Admin) ----------
+async function renderAuditoria(){
+  try{
+    const lista=await api('GET','/api/auditoria');
+    document.getElementById('tAud').innerHTML='<table><tr><th>Fecha y hora</th><th>Usuario</th><th>Acción</th><th>Detalle</th></tr>'+
+      lista.map(a=>'<tr><td>'+esc(a.cuando)+'</td><td>'+esc(a.usuario)+'</td><td>'+esc(a.accion)+'</td><td>'+esc(a.detalle)+'</td></tr>').join('')+'</table>';
+  }catch(e){ document.getElementById('tAud').innerHTML='<p class="hint">'+esc(e.message)+'</p>'; }
+}
+
+// ---------- RESPALDO (Admin) ----------
+async function exportar(){
+  try{
+    const r=await fetch('/api/respaldo'); if(!r.ok) throw new Error((await r.json()).error);
+    const blob=await r.blob(); const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download='respaldo_registro_'+hoy()+'.json'; a.click();
+    msg('mResp','Respaldo descargado.',true);
+  }catch(e){ msg('mResp',e.message,false); }
+}
+function importar(file){
+  if(!file) return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const d=JSON.parse(rd.result);
+      if(!confirm('Esto reemplazará los datos operativos actuales por el respaldo. ¿Continuar?')) return;
+      accion('mResp','Respaldo restaurado.',()=>api('POST','/api/respaldo',d));
+    }catch(e){ msg('mResp','El archivo no es un respaldo válido.',false); }
+  };
+  rd.readAsText(file);
+}
+function borrarTodo(){
+  if(!confirm('Se borrarán los datos operativos (movimientos, registros, presupuestos, tasas, productos). Usuarios y auditoría se conservan. ¿Continuar?')) return;
+  accion('mResp','Datos operativos borrados.',()=>api('DELETE','/api/datos'));
+}
+
+// ---------- Arranque ----------
+iniciar();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+# Despliegue en Render (Blueprint). Requiere plan de pago por el disco persistente.
+services:
+  - type: web
+    name: sistema-contable
+    runtime: docker
+    plan: starter
+    healthCheckPath: /healthz
+    disk:
+      name: datos
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: DATA_DIR
+        value: /data
